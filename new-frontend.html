@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood Test Result Analyzer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f9;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            overflow-y: scroll;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        h1 {
+            color: #007bff;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result-section {
+            margin-top: 40px;
+        }
+        .result {
+            padding: 20px;
+            background-color: #e9ecef;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            color: #333;
+        }
+        .form-group div {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        /* Dialog styles */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .dialog {
+            display: none;
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -20%);
+            width: 80%;
+            max-width: 500px;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            z-index: 1001;
+        }
+        .dialog button {
+            margin-top: 10px;
+        }
+        .suggestion {
+            display: block;
+            padding: 5px;
+            cursor: pointer;
+            color: #007bff;
+            text-decoration: underline;
+        }
+        .suggestion:hover {
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Blood Test Result Analyzer</h1>
+
+        <div class="form-group">
+            <label for="blood_sugar">Blood Sugar Level</label>
+            <div>Standard Range (Fasting): Less than 100 mg/dL</div>
+            <div>Standard Range (Postprandial): Less than 140 mg/dL</div>
+            <input type="text" id="blood_sugar" value="95 mg/dL">
+            <button onclick="showQuestionDialog('blood_sugar')">Discuss</button>
+        </div>
+
+        <div class="form-group">
+            <label for="vitamin_a">Vitamin A</label>
+            <div>Standard Range: 900-3000 mcg</div>
+            <input type="text" id="vitamin_a" value="1500 mcg">
+            <button onclick="showQuestionDialog('vitamin_a')">Discuss</button>
+        </div>
+
+        <div class="form-group">
+            <label for="vitamin_b12">Vitamin B12</label>
+            <div>Standard Range: 200-900 pg/mL</div>
+            <input type="text" id="vitamin_b12" value="500 pg/mL">
+            <button onclick="showQuestionDialog('vitamin_b12')">Discuss</button>
+        </div>
+
+        <div class="result-section">
+            <div class="result" id="result"></div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="dialog" id="question-dialog">
+        <h3>Ask a Specific Question</h3>
+        <textarea id="question-text" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+        <div id="suggestions-container"></div>
+        <button onclick="askQuestion()">Submit Question</button>
+        <button onclick="closeDialog()">Cancel</button>
+    </div>
+
+    <script>
+        function showQuestionDialog(fieldId) {
+            const field = document.getElementById(fieldId);
+            // document.getElementById('question-text').value = field.value || field.placeholder;
+
+            const suggestions = {
+                'blood_sugar': [
+                    "What are the potential causes of high blood sugar?",
+                    "How can I lower my blood sugar levels?"
+                ],
+                'vitamin_a': [
+                    "What are the symptoms of vitamin A deficiency?",
+                    "How can I increase my vitamin A intake?"
+                ],
+                'vitamin_b12': [
+                    "What are the signs of vitamin B12 deficiency?",
+                    "How can I improve my vitamin B12 levels?"
+                ]
+            };
+
+            const suggestionsContainer = document.getElementById('suggestions-container');
+            suggestionsContainer.innerHTML = ''; // Clear previous suggestions
+
+            (suggestions[fieldId] || []).forEach(question => {
+                const suggestionElement = document.createElement('div');
+                suggestionElement.classList.add('suggestion');
+                suggestionElement.innerText = question;
+                suggestionElement.onclick = () => {
+                    document.getElementById('question-text').value = question;
+                };
+                suggestionsContainer.appendChild(suggestionElement);
+            });
+
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('question-dialog').style.display = 'block';
+        }
+
+        function closeDialog() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('question-dialog').style.display = 'none';
+        }
+
+        async function askQuestion() {
+            const questionText = document.getElementById('question-text').value.trim();
+            const formData = {
+                blood_sugar: document.getElementById('blood_sugar').value,
+                vitamin_a: document.getElementById('vitamin_a').value,
+                vitamin_b12: document.getElementById('vitamin_b12').value
+            };
+
+            if (questionText === "") {
+                alert("Please enter a question.");
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/ask_question', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        question: questionText,
+                        context: formData
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                document.getElementById('result').innerText = result.suggestions || result.error;
+            } catch (error) {
+                document.getElementById('result').innerText = `Error: ${error.message}`;
+            }
+
+            closeDialog();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood Test Result Analyzer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f9;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            overflow-y: scroll;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            color: #007bff;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        .form-group div {
+            margin-bottom: 8px;
+            font-size: 1em;
+            color: #333;
+        }
+        button {
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result-section {
+            margin-top: 40px;
+        }
+        .result {
+            padding: 20px;
+            background-color: #e9ecef;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            color: #333;
+        }
+        .dialog {
+            display: none;
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -20%);
+            width: 90%;
+            max-width: 500px;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            z-index: 1001;
+            box-sizing: border-box;
+        }
+        .dialog textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+            height: 60px;
+            overflow-y: auto;
+            resize: none;
+        }
+        .dialog button {
+            margin-top: 15px;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .suggestion {
+            display: block;
+            padding: 8px;
+            cursor: pointer;
+            color: #007bff;
+            text-decoration: underline;
+        }
+        .suggestion:hover {
+            text-decoration: none;
+        }
+        .dialog-content {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+        .history-item {
+            margin-bottom: 15px;
+        }
+        .history-item.question {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Blood Test Result Analyzer</h1>
+
+        <div class="form-group">
+            <label for="name" style="font-size: 20px;">Name</label>
+            <div id="name" style="font-size: 18px;">John Doe</div>
+        </div>
+
+        <div class="form-group">
+            <label for="sex" style="font-size: 20px;">Sex</label>
+            <div id="sex" style="font-size: 18px;">Male</div>
+        </div>
+
+        <div class="form-group">
+            <label for="age" style="font-size: 20px;">Age</label>
+            <div id="age" style="font-size: 18px;">35</div>
+        </div>
+
+        <div class="form-group">
+            <label for="race" style="font-size: 20px;">Race</label>
+            <div id="race" style="font-size: 18px;">Caucasian</div>
+        </div>
+
+        <div class="form-group">
+            <label for="blood_sugar" style="font-size: 20px;">Blood Sugar Level</label>
+            <div style="font-style: italic;">Standard Range (Fasting): Less than 100 mg/dL</div>
+            <div style="font-style: italic;">Standard Range (Postprandial): Less than 140 mg/dL</div>
+            <div id="blood_sugar_display" style="font-size: 18px; font-weight: bold;">95 mg/dL</div>
+            <button onclick="showQuestionDialog('blood_sugar')">Discuss</button>
+        </div>
+
+        <div class="form-group">
+            <label for="vitamin_a" style="font-size: 20px;">Vitamin A</label>
+            <div style="font-style: italic;">Standard Range: 900-3000 mcg</div>
+            <div id="vitamin_a_display" style="font-size: 18px; font-weight: bold;">1500 mcg</div>
+            <button onclick="showQuestionDialog('vitamin_a')">Discuss</button>
+        </div>
+
+        <div class="form-group">
+            <label for="vitamin_b12" style="font-size: 20px;">Vitamin B12</label>
+            <div style="font-style: italic;">Standard Range: 200-900 pg/mL</div>
+            <div id="vitamin_b12_display" style="font-size: 18px; font-weight: bold;">500 pg/mL</div>
+            <button onclick="showQuestionDialog('vitamin_b12')">Discuss</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="dialog" id="question-dialog">
+        <h3>Ask a Specific Question</h3>
+        <textarea id="question-text"></textarea> <!-- Scrollable textarea at the top -->
+        <div id="suggestions-container"></div>
+        <div class="dialog-content" id="dialog-content">
+            <div class="history" id="history-container"></div>
+            <!-- Commenting out the result container -->
+            <!-- <div class="result" id="result-container"></div> -->
+        </div>
+        <button onclick="askQuestion()">Submit Question</button>
+        <button onclick="closeDialog()">Cancel</button>
+    </div>
+
+    <script>
+        let currentFieldId = ''; // Store the current field ID
+
+        const history = {
+            blood_sugar: [],
+            vitamin_a: [],
+            vitamin_b12: []
+        };
+
+        function showQuestionDialog(fieldId) {
+            currentFieldId = fieldId; // Set the current field ID
+            const field = document.getElementById(`${fieldId}_display`).textContent;
+
+            const suggestions = {
+                'blood_sugar': [
+                  "How should I interpret my results? Is my blood sugar count of 95 mg/dL reasonable?",
+                    "What are the potential causes of high blood sugar?",
+                    "How can I lower my blood sugar levels?"
+                ],
+                'vitamin_a': [
+                  "How should I interpret my results? Is my vitamin A count of 1500 mcg reasonable?",
+                    "What are the symptoms of vitamin A deficiency?",
+                    "How can I increase my vitamin A intake?"
+                ],
+                'vitamin_b12': [
+                  "How should I interpret my results? Is my vitamin B12 count of 500 pg/mL reasonable?",
+                    "What are the signs of vitamin B12 deficiency?",
+                    "How can I improve my vitamin B12 levels?"
+                ]
+            };
+
+            const suggestionsContainer = document.getElementById('suggestions-container');
+            suggestionsContainer.innerHTML = ''; // Clear previous suggestions
+
+            (suggestions[fieldId] || []).forEach(question => {
+                const suggestionElement = document.createElement('div');
+                suggestionElement.classList.add('suggestion');
+                suggestionElement.innerText = question;
+                suggestionElement.onclick = () => {
+                    document.getElementById('question-text').value = question; // Set question text
+                };
+                suggestionsContainer.appendChild(suggestionElement);
+            });
+
+            // Set history for the selected field
+            updateHistory(fieldId);
+
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('question-dialog').style.display = 'block';
+        }
+
+        function closeDialog() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('question-dialog').style.display = 'none';
+        }
+
+        async function askQuestion() {
+            const questionText = document.getElementById('question-text').value.trim();
+            if (questionText === "") {
+                alert("Please enter a question.");
+                return;
+            }
+
+            const formData = {
+                blood_sugar: document.getElementById('blood_sugar_display').textContent,
+                vitamin_a: document.getElementById('vitamin_a_display').textContent,
+                vitamin_b12: document.getElementById('vitamin_b12_display').textContent,
+                name: document.getElementById('name').textContent,
+                sex: document.getElementById('sex').textContent,
+                age: document.getElementById('age').textContent,
+                race: document.getElementById('race').textContent
+            };
+
+            try {
+                console.log('Sending request with:', { question: questionText, currentFieldId, formData }); // Debug log
+
+                const response = await fetch('/ask-question', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question: questionText, fieldId: currentFieldId, context: formData })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                const answer = data.answer || "No answer available.";
+
+                // Add question and answer to history
+                history[currentFieldId].unshift({ question: questionText, answer });
+                updateHistory(currentFieldId);
+
+                // Clear question text
+                document.getElementById('question-text').value = '';
+            } catch (error) {
+                console.error('There was a problem with the fetch operation:', error);
+            }
+        }
+
+        function updateHistory(fieldId) {
+            const historyContainer = document.getElementById('history-container');
+            historyContainer.innerHTML = ''; // Clear previous history
+
+            history[fieldId].forEach(item => {
+                const questionItem = document.createElement('div');
+                questionItem.classList.add('history-item', 'question');
+                questionItem.innerText = item.question;
+                historyContainer.appendChild(questionItem);
+
+                const answerItem = document.createElement('div');
+                answerItem.classList.add('history-item');
+                answerItem.innerText = item.answer;
+                historyContainer.appendChild(answerItem);
+            });
+        }
+    </script>
+</body>
+</html>

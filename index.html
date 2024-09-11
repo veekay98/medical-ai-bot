@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Suggestions</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #result { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Medical Suggestions</h1>
+    <form id="medicalForm">
+        <label for="inputText">Enter medical conditions (e.g., blood sugar value, vitamin amounts):</label><br>
+        <input type="text" id="inputText" name="inputText" size="50"><br><br>
+        <button type="button" onclick="getSuggestions()">Give medical suggestions</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        async function getSuggestions() {
+            const inputText = document.getElementById('inputText').value;
+            const resultDiv = document.getElementById('result');
+
+            const response = await fetch('/api/get_suggestions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: inputText })
+            });
+
+            const data = await response.json();
+            resultDiv.innerHTML = `<p><strong>Suggestions:</strong> ${data.suggestion}</p>`;
+        }
+    </script>
+</body>
+</html>
